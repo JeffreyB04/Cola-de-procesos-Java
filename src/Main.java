@@ -116,7 +116,7 @@ class ManejoProcesos {
     private static void ejecutarFCFS() {
         ColaProcesos cola = crearColaProcesos();
         System.out.println("\nEjecutando FCFS (en orden de llegada)");
-        System.out.println("Diagrama de Grantt:");
+        System.out.println("Diagrama de Gantt:");
         int tiempo = 0;
         for (Proceso proceso : cola) {
             System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
@@ -130,7 +130,7 @@ class ManejoProcesos {
         ColaProcesos cola = crearColaProcesos();
         cola.ordenarPorDuracion();
         System.out.println("\nEjecutando SJF (Planificación con selección del trabajo más corto)");
-        System.out.println("Diagrama de Grantt:");
+        System.out.println("Diagrama de Gantt:");
         int tiempo = 0;
         for (Proceso proceso : cola) {
             System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
@@ -145,7 +145,7 @@ class ManejoProcesos {
         System.out.print("Ingresa el quantum para Round Robin: ");
         int quantum = scanner.nextInt();
         System.out.println("\nEjecutando Round Robin");
-        System.out.println("Diagrama de Grantt:");
+        System.out.println("Diagrama de Gantt:");
         int tiempo = 0;
         while (!cola.isEmpty()) {
             Proceso proceso = cola.get(0);
