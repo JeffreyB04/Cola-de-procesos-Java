@@ -99,6 +99,30 @@ class ManejoProcesos {
             System.out.print("Elige una opción: ");
             int opcion = scanner.nextInt();
             switch (opcion) {
+            /*
+                case 1:
+                    Thread fcfsThread = new Thread(() -> ejecutarFCFS());
+                    fcfsThread.start();
+                    break;
+                case 2:
+                    Thread sjfThread = new Thread(() -> ejecutarSJF());
+                    sjfThread.start();
+                    break;
+                case 3:
+                    Thread roundRobinFifoThread = new Thread(() -> ejecutarRoundRobinFIFO());
+                    roundRobinFifoThread.start();
+                    break;
+                case 4:
+                    Thread roundRobinPrioridadThread = new Thread(() -> ejecutarRoundRobinPrioridad());
+                    roundRobinPrioridadThread.start();
+                    break;
+                case 5:
+                    salir = true;
+                    break;
+
+
+                    */
+                    
                 case 1:
                     ejecutarFCFS();
                     break;
