@@ -1,10 +1,8 @@
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
-class Proceso {
+class Proceso implements Runnable {
     private String nombre;
     private int duracion;
     private int prioridad;
@@ -23,16 +21,28 @@ class Proceso {
         return duracion;
     }
 
-    public void setDuracion(int duracion) {
-        this.duracion = duracion;
-    }
-
     public int getPrioridad() {
         return prioridad;
     }
+
+    public void run() {
+        System.out.println("Ejecutando proceso " + nombre + " (duración = " + duracion
+                + ", prioridad = " + prioridad + ")");
+
+        while (duracion > 0) {
+            duracion--;
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("Proceso " + nombre + " finalizado.");
+    }
 }
 
-class ColaProcesos implements Iterable<Proceso> {
+class ColaProcesos {
     private List<Proceso> procesos;
 
     public ColaProcesos() {
@@ -43,271 +53,194 @@ class ColaProcesos implements Iterable<Proceso> {
         procesos.add(proceso);
     }
 
-    public void mostrarProcesos() {
-        for (Proceso proceso : procesos) {
-            System.out.println("Proceso: " + proceso.getNombre() + " Duración: " + proceso.getDuracion()
-                    + " Prioridad: " + proceso.getPrioridad());
-        }
-    }
-
-    public void ordenarPorDuracion() {
-        procesos.sort(Comparator.comparingInt(Proceso::getDuracion));
-    }
-
-    public void ordenarPorPrioridad() {
-        procesos.sort(Comparator.comparingInt(Proceso::getPrioridad));
-    }
-
-    public boolean isEmpty() {
+    public boolean estaVacia() {
         return procesos.isEmpty();
     }
 
-    public Proceso get(int index) {
-        return procesos.get(index);
+    public Proceso obtenerProceso() {
+        return procesos.get(0);
+    }
+
+    public Proceso obtenerProcesoConMayorPrioridad() {
+        Proceso procesoMayorPrioridad = procesos.get(0);
+        for (Proceso proceso : procesos) {
+            if (proceso.getPrioridad() > procesoMayorPrioridad.getPrioridad()) {
+                procesoMayorPrioridad = proceso;
+            }
+        }
+        return procesoMayorPrioridad;
+    }
+
+    public Proceso obtenerProcesoConMenorDuracion() {
+        Proceso procesoMenorDuracion = procesos.get(0);
+        for (Proceso proceso : procesos) {
+            if (proceso.getDuracion() < procesoMenorDuracion.getDuracion()) {
+                procesoMenorDuracion = proceso;
+            }
+        }
+        return procesoMenorDuracion;
+    }
+
+    public void ordenarPorDuracion() {
+        procesos.sort((p1, p2) -> p1.getDuracion() - p2.getDuracion());
+    }
+
+    public void ordenarPorPrioridad() {
+        procesos.sort((p1, p2) -> p2.getPrioridad() - p1.getPrioridad());
     }
 
     public void remove(Proceso proceso) {
         procesos.remove(proceso);
     }
 
-    public void add(Proceso proceso) {
-        procesos.add(proceso);
-    }
-
     public int size() {
         return procesos.size();
     }
 
-    @Override
-    public Iterator<Proceso> iterator() {
-        return procesos.iterator();
+    public Proceso get(int index) {
+        return procesos.get(index);
     }
 }
 
-class ManejoProcesos {
-    private static Scanner scanner = new Scanner(System.in);
+class PlanificadorProcesos {
 
     public static void main(String[] args) {
-        boolean salir = false;
-        while (!salir) {
-            System.out.println("\n--- Menú ---");
-            System.out.println("1. FCFS (en orden de llegada)");
-            System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
-            System.out.println("3. Round Robin con FIFO");
-            System.out.println("4. Round Robin con prioridad");
-            System.out.println("5. SRTF (Shortest Remaining Time First)");
-            System.out.println("6. Salir");
-            System.out.print("Elige una opción: ");
-            int opcion = scanner.nextInt();
-            if (opcion < 1 || opcion > 6) {
-                System.out.println("Opción inválida. Por favor, elige una opción válida.");
-                continue;
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("--- Planificador de Procesos ---");
+        System.out.println("Selecciona el algoritmo de planificación:");
+        System.out.println("1. FCFS (en orden de llegada)");
+        System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
+        System.out.println("3. Round Robin con FIFO");
+        System.out.println("4. Round Robin con prioridad");
+        System.out.println("5. SRTF (Shortest Remaining Time First)");
+        System.out.print("Opción: ");
+        int opcion = scanner.nextInt();
+
+        ColaProcesos colaProcesos = crearColaProcesos();
+
+        switch (opcion) {
+            case 1:
+                planificarFCFS(colaProcesos);
+                break;
+            case 2:
+                planificarSJF(colaProcesos);
+                break;
+            case 3:
+                System.out.print("Ingresa el valor del quantum: ");
+                int quantum = scanner.nextInt();
+                planificarRoundRobin(colaProcesos, quantum);
+                break;
+            case 4:
+                System.out.print("Ingresa el valor del quantum: ");
+                quantum = scanner.nextInt();
+                planificarRoundRobinConPrioridad(colaProcesos, quantum);
+                break;
+            case 5:
+                planificarSRTF(colaProcesos);
+                break;
+            default:
+                System.out.println("Opción inválida.");
+        }
+    }
+
+    public static ColaProcesos crearColaProcesos() {
+        ColaProcesos colaProcesos = new ColaProcesos();
+        colaProcesos.agregarProceso(new Proceso("P1", 5, 2));
+        colaProcesos.agregarProceso(new Proceso("P2", 3, 1));
+        colaProcesos.agregarProceso(new Proceso("P3", 8, 3));
+        colaProcesos.agregarProceso(new Proceso("P4", 2, 4));
+        colaProcesos.agregarProceso(new Proceso("P5", 6, 2));
+        return colaProcesos;
+    }
+
+    public static void planificarFCFS(ColaProcesos colaProcesos) {
+        while (!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProceso();
+            Thread thread = new Thread(proceso);
+            thread.start();
+
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            switch (opcion) {
 
-/*
-                case 1:
-                    Thread fcfsThread = new Thread(() -> ejecutarFCFS());
-                    fcfsThread.start();
-                    break;
-                case 2:
-                    Thread sjfThread = new Thread(() -> ejecutarSJF());
-                    sjfThread.start();
-                    break;
-                case 3:
-                    Thread roundRobinFifoThread = new Thread(() -> ejecutarRoundRobinFIFO());
-                    roundRobinFifoThread.start();
-                    break;
-                case 4:
-                    Thread roundRobinPrioridadThread = new Thread(() -> ejecutarRoundRobinPrioridad());
-                    roundRobinPrioridadThread.start();
-                    break;
-                case 5:
-                    salir = true;
-                    break;
+            colaProcesos.remove(proceso);
+        }
+    }
 
+    public static void planificarSJF(ColaProcesos colaProcesos) {
+        colaProcesos.ordenarPorDuracion();
 
-                    */
+        while (!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProceso();
+            Thread thread = new Thread(proceso);
+            thread.start();
 
-                case 1:
-                    ejecutarFCFS();
-                    break;
-                case 2:
-                    ejecutarSJF();
-                    break;
-                case 3:
-                    ejecutarRoundRobinFIFO();
-                    break;
-                case 4:
-                    ejecutarRoundRobinPrioridad();
-                    break;
-                case 5:
-                    ejecutarSRTF();
-                    break;
-                case 6:
-                    salir = true;
-                    break;
-                default:
-                    System.out.println("Opción inválida.");
-                    break;
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
+            colaProcesos.remove(proceso);
         }
     }
 
-    private static void ejecutarFCFS() {
-        ColaProcesos cola = crearColaProcesos();
-        System.out.println("\nEjecutando FCFS (en orden de llegada)");
-        System.out.println("Diagrama de Gantt:");
-        int tiempo = 0;
-        for (Proceso proceso : cola) {
-            System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
-            tiempo += proceso.getDuracion();
-        }
-        double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
-        System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
-    }
+    public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
+        while (!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProceso();
+            Thread thread = new Thread(proceso);
+            thread.start();
 
-    private static void ejecutarSJF() {
-        ColaProcesos cola = crearColaProcesos();
-        cola.ordenarPorDuracion();
-        System.out.println("\nEjecutando SJF (Planificación con selección del trabajo más corto)");
-        System.out.println("Diagrama de Gantt:");
-        int tiempo = 0;
-        for (Proceso proceso : cola) {
-            System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
-            tiempo += proceso.getDuracion();
-        }
-        double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
-        System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
-    }
-
-    private static void ejecutarRoundRobinFIFO() {
-        ColaProcesos cola = crearColaProcesos();
-        System.out.print("Ingrese el quantum para Round Robin: ");
-        int quantum = scanner.nextInt();
-        System.out.println("\nEjecutando Round Robin con FIFO");
-        System.out.println("Diagrama de Gantt:");
-        int tiempo = 0;
-        while (!cola.isEmpty()) {
-            Proceso proceso = cola.get(0);
-            if (proceso.getDuracion() <= quantum) {
-                System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
-                tiempo += proceso.getDuracion();
-                cola.remove(proceso);
-            } else {
-                System.out.print(tiempo + " - " + (tiempo + quantum) + ": " + proceso.getNombre() + " ");
-                tiempo += quantum;
-                proceso.setDuracion(proceso.getDuracion() - quantum);
-                cola.add(proceso);
-                cola.remove(proceso);
+            try {
+                thread.join(quantum * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }
-        double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
-        System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
-    }
 
-    private static void ejecutarSRTF() {
-        ColaProcesos cola = crearColaProcesos();
-        System.out.println("\nEjecutando SRTF (Shortest Remaining Time First)");
-        System.out.println("Diagrama de Gantt:");
-        int tiempo = 0;
-        while (!cola.isEmpty()) {
-            Proceso procesoActual = obtenerProcesoMasCorto(cola, tiempo);
-            if (procesoActual != null) {
-                System.out.print(tiempo + " - " + (tiempo + 1) + ": " + procesoActual.getNombre() + " ");
-                tiempo += 1;
-                procesoActual.setDuracion(procesoActual.getDuracion() - 1);
-                if (procesoActual.getDuracion() == 0) {
-                    cola.remove(procesoActual);
-                }
-            } else {
-                tiempo += 1;
-            }
-        }
-        double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
-        System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
-    }
-    private static Proceso obtenerProcesoMasCorto(ColaProcesos cola, int tiempo) {
-        Proceso procesoMasCorto = null;
-        for (Proceso proceso : cola) {
             if (proceso.getDuracion() > 0) {
-                if (procesoMasCorto == null) {
-                    procesoMasCorto = proceso;
-                } else if (proceso.getDuracion() < procesoMasCorto.getDuracion()) {
-                    procesoMasCorto = proceso;
-                }
+                colaProcesos.remove(proceso);
+                colaProcesos.agregarProceso(proceso);
             }
         }
-        return procesoMasCorto;
     }
 
-    private static void ejecutarRoundRobinPrioridad() {
-        ColaProcesos cola = crearColaProcesos();
-        cola.ordenarPorPrioridad();
-        System.out.print("Ingrese el quantum para Round Robin: ");
-        int quantum = scanner.nextInt();
-        System.out.println("\nEjecutando Round Robin con prioridad");
-        System.out.println("Diagrama de Gantt:");
-        int tiempo = 0;
-        while (!cola.isEmpty()) {
-            Proceso proceso = cola.get(0);
-            if (proceso.getDuracion() <= quantum) {
-                System.out.print(tiempo + " - " + (tiempo + proceso.getDuracion()) + ": " + proceso.getNombre() + " ");
-                tiempo += proceso.getDuracion();
-                cola.remove(proceso);
-            } else {
-                System.out.print(tiempo + " - " + (tiempo + quantum) + ": " + proceso.getNombre() + " ");
-                tiempo += quantum;
-                proceso.setDuracion(proceso.getDuracion() - quantum);
-                cola.add(proceso);
-                cola.remove(proceso);
-                cola.ordenarPorPrioridad(); // Ordenar nuevamente por prioridad después de agregar el proceso al final de la cola
+    public static void planificarRoundRobinConPrioridad(ColaProcesos colaProcesos, int quantum) {
+        colaProcesos.ordenarPorPrioridad();
+
+        while (!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProceso();
+            Thread thread = new Thread(proceso);
+            thread.start();
+
+            try {
+                thread.join(quantum * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (proceso.getDuracion() > 0) {
+                colaProcesos.remove(proceso);
+                colaProcesos.agregarProceso(proceso);
             }
         }
-        double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
-        System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
     }
 
-    private static ColaProcesos crearColaProcesos() {
-        ColaProcesos cola = new ColaProcesos();
-        System.out.print("Ingrese la cantidad de procesos: ");
-        int cantidadProcesos = scanner.nextInt();
-        if (cantidadProcesos <= 0) {
-            System.out.println("La cantidad de procesos debe ser un número positivo.");
-            return cola;
-        }
-        for (int i = 1; i <= cantidadProcesos; i++) {
-            System.out.print("Ingrese el nombre del proceso " + i + ": ");
-            String nombre = scanner.next();
-            System.out.print("Ingrese la duración del proceso " + i + ": ");
-            int duracion = scanner.nextInt();
-            if (duracion <= 0) {
-                System.out.println("La duración del proceso debe ser un número positivo.");
-                i--;
-                continue;
-            }
-            System.out.print("Ingrese la prioridad del proceso " + i + ": ");
-            int prioridad = scanner.nextInt();
-            if (prioridad <= 0) {
-                System.out.println("La prioridad del proceso debe ser un número positivo.");
-                i--;
-                continue;
-            }
-            Proceso proceso = new Proceso(nombre, duracion, prioridad);
-            cola.agregarProceso(proceso);
-        }
-        return cola;
-    }
+    public static void planificarSRTF(ColaProcesos colaProcesos) {
+        while (!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProcesoConMenorDuracion();
+            Thread thread = new Thread(proceso);
+            thread.start();
 
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-    private static double calcularTiempoMedioEspera(ColaProcesos cola) {
-        double tiempoTotalEspera = 0;
-        int cantidadProcesos = cola.size();
-        int tiempoEspera = 0;
-        for (Proceso proceso : cola) {
-            tiempoTotalEspera += tiempoEspera;
-            tiempoEspera += proceso.getDuracion();
+            colaProcesos.remove(proceso);
         }
-        return tiempoTotalEspera / cantidadProcesos;
     }
 }
