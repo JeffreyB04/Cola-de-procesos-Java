@@ -95,16 +95,17 @@ class ManejoProcesos {
             System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
             System.out.println("3. Round Robin con FIFO");
             System.out.println("4. Round Robin con prioridad");
-            System.out.println("5. Salir");
+            System.out.println("5. SRTF (Shortest Remaining Time First)");
+            System.out.println("6. Salir");
             System.out.print("Elige una opción: ");
             int opcion = scanner.nextInt();
             if (opcion < 1 || opcion > 6) {
-            System.out.println("Opción inválida. Por favor, elige una opción válida.");
-            continue;
-        }
+                System.out.println("Opción inválida. Por favor, elige una opción válida.");
+                continue;
+            }
             switch (opcion) {
-            /*
- 
+
+/*
                 case 1:
                     Thread fcfsThread = new Thread(() -> ejecutarFCFS());
                     fcfsThread.start();
@@ -127,7 +128,7 @@ class ManejoProcesos {
 
 
                     */
-                    
+
                 case 1:
                     ejecutarFCFS();
                     break;
@@ -205,7 +206,7 @@ class ManejoProcesos {
         System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
     }
 
- private static void ejecutarSRTF() {
+    private static void ejecutarSRTF() {
         ColaProcesos cola = crearColaProcesos();
         System.out.println("\nEjecutando SRTF (Shortest Remaining Time First)");
         System.out.println("Diagrama de Gantt:");
@@ -226,7 +227,7 @@ class ManejoProcesos {
         double tiempoMedioEspera = calcularTiempoMedioEspera(cola);
         System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
     }
-     private static Proceso obtenerProcesoMasCorto(ColaProcesos cola, int tiempo) {
+    private static Proceso obtenerProcesoMasCorto(ColaProcesos cola, int tiempo) {
         Proceso procesoMasCorto = null;
         for (Proceso proceso : cola) {
             if (proceso.getDuracion() > 0) {
@@ -267,36 +268,36 @@ class ManejoProcesos {
         System.out.println("\nTiempo medio de espera: " + tiempoMedioEspera);
     }
 
- private static ColaProcesos crearColaProcesos() {
-    ColaProcesos cola = new ColaProcesos();
-    System.out.print("Ingrese la cantidad de procesos: ");
-    int cantidadProcesos = scanner.nextInt();
-    if (cantidadProcesos <= 0) {
-        System.out.println("La cantidad de procesos debe ser un número positivo.");
+    private static ColaProcesos crearColaProcesos() {
+        ColaProcesos cola = new ColaProcesos();
+        System.out.print("Ingrese la cantidad de procesos: ");
+        int cantidadProcesos = scanner.nextInt();
+        if (cantidadProcesos <= 0) {
+            System.out.println("La cantidad de procesos debe ser un número positivo.");
+            return cola;
+        }
+        for (int i = 1; i <= cantidadProcesos; i++) {
+            System.out.print("Ingrese el nombre del proceso " + i + ": ");
+            String nombre = scanner.next();
+            System.out.print("Ingrese la duración del proceso " + i + ": ");
+            int duracion = scanner.nextInt();
+            if (duracion <= 0) {
+                System.out.println("La duración del proceso debe ser un número positivo.");
+                i--;
+                continue;
+            }
+            System.out.print("Ingrese la prioridad del proceso " + i + ": ");
+            int prioridad = scanner.nextInt();
+            if (prioridad <= 0) {
+                System.out.println("La prioridad del proceso debe ser un número positivo.");
+                i--;
+                continue;
+            }
+            Proceso proceso = new Proceso(nombre, duracion, prioridad);
+            cola.agregarProceso(proceso);
+        }
         return cola;
     }
-    for (int i = 1; i <= cantidadProcesos; i++) {
-        System.out.print("Ingrese el nombre del proceso " + i + ": ");
-        String nombre = scanner.next();
-        System.out.print("Ingrese la duración del proceso " + i + ": ");
-        int duracion = scanner.nextInt();
-        if (duracion <= 0) {
-            System.out.println("La duración del proceso debe ser un número positivo.");
-            i--;
-            continue;
-        }
-        System.out.print("Ingrese la prioridad del proceso " + i + ": ");
-        int prioridad = scanner.nextInt();
-        if (prioridad <= 0) {
-            System.out.println("La prioridad del proceso debe ser un número positivo.");
-            i--;
-            continue;
-        }
-        Proceso proceso = new Proceso(nombre, duracion, prioridad);
-        cola.agregarProceso(proceso);
-    }
-    return cola;
-}
 
 
     private static double calcularTiempoMedioEspera(ColaProcesos cola) {
