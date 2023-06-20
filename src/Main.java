@@ -111,58 +111,67 @@ class PlanificadorProcesos {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        boolean continuar = true;
 
-        System.out.println("--- Planificador de Procesos ---");
-        System.out.print("Ingresa el número de procesos: ");
-        int numProcesos = scanner.nextInt();
+        while (continuar) {
+            System.out.println("--- Planificador de Procesos ---");
+            System.out.print("Ingresa el número de procesos: ");
+            int numProcesos = scanner.nextInt();
 
-        ColaProcesos colaProcesos = crearColaProcesos(numProcesos);
+            ColaProcesos colaProcesos = crearColaProcesos(numProcesos);
 
-        System.out.println("Selecciona el algoritmo de planificación:");
-        System.out.println("1. FCFS (en orden de llegada)");
-        System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
-        System.out.println("3. Round Robin con FIFO");
-        System.out.println("4. Round Robin con prioridad");
-        System.out.println("5. SRTF (Shortest Remaining Time First)");
-        System.out.print("Opción: ");
-        int opcion = scanner.nextInt();
+            System.out.println("Selecciona el algoritmo de planificación:");
+            System.out.println("1. FCFS (en orden de llegada)");
+            System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
+            System.out.println("3. Round Robin con FIFO");
+            System.out.println("4. Round Robin con prioridad");
+            System.out.println("5. SRTF (Shortest Remaining Time First)");
+            System.out.println("6. Salir");
+            System.out.print("Opción: ");
+            int opcion = scanner.nextInt();
 
-        switch (opcion) {
-            case 1:
-                planificarFCFS(colaProcesos);
-                break;
-            case 2:
-                planificarSJF(colaProcesos);
-                break;
-            case 3:
-                System.out.print("Ingresa el valor del quantum: ");
-                int quantum = scanner.nextInt();
-                planificarRoundRobin(colaProcesos, quantum);
-                break;
-            case 4:
-                System.out.print("Ingresa el valor del quantum: ");
-                quantum = scanner.nextInt();
-                planificarRoundRobinConPrioridad(colaProcesos, quantum);
-                break;
-            case 5:
-                planificarSRTF(colaProcesos);
-                break;
-            default:
-                System.out.println("Opción inválida.");
+            switch (opcion) {
+                case 1:
+                    planificarFCFS(colaProcesos);
+                    break;
+                case 2:
+                    planificarSJF(colaProcesos);
+                    break;
+                case 3:
+                    System.out.print("Ingresa el valor del quantum: ");
+                    int quantum = scanner.nextInt();
+                    planificarRoundRobin(colaProcesos, quantum);
+                    break;
+                case 4:
+                    System.out.print("Ingresa el valor del quantum: ");
+                    quantum = scanner.nextInt();
+                    planificarRoundRobinConPrioridad(colaProcesos, quantum);
+                    break;
+                case 5:
+                    planificarSRTF(colaProcesos);
+                    break;
+                case 6:
+                    continuar = false;
+                    System.out.println("Saliendo del programa...");
+                    break;
+                default:
+                    System.out.println("Opción inválida.");
+            }
         }
+        scanner.close();
     }
 
     public static ColaProcesos crearColaProcesos(int numProcesos) {
         ColaProcesos colaProcesos = new ColaProcesos();
         Scanner scanner = new Scanner(System.in);
-
+        System.out.println("Datos de los Procesos2");
         for (int i = 1; i <= numProcesos; i++) {
-            System.out.println("Proceso #" + i);
-            System.out.print("Ingresa el nombre: ");
-            String nombre = scanner.nextLine();
-            System.out.print("Ingresa la duración: ");
+            System.out.println("\t Proceso #" + i);
+            System.out.print("\t \t Nombre: ");
+            String nombre = scanner.next();
+            System.out.print("\t \t Duración: ");
             int duracion = scanner.nextInt();
-            System.out.print("Ingresa la prioridad: ");
+            System.out.print("\t \t Prioridad: ");
             int prioridad = scanner.nextInt();
             scanner.nextLine(); // Consumir nueva línea
 
