@@ -17,6 +17,10 @@ class Proceso implements Runnable {
         return nombre;
     }
 
+    public void setDuracion(int duracion) {
+        this.duracion = duracion;
+    }
+
     public int getDuracion() {
         return duracion;
     }
@@ -30,6 +34,7 @@ class Proceso implements Runnable {
                 + ", prioridad = " + prioridad + ")");
 
         while (duracion > 0) {
+            System.out.println("Proceso " + nombre + ": " + duracion + " segundos restantes.");
             duracion--;
             try {
                 Thread.sleep(1000);
@@ -42,7 +47,7 @@ class Proceso implements Runnable {
     }
 }
 
-class ColaProcesos {
+    class ColaProcesos {
     private List<Proceso> procesos;
 
     public ColaProcesos() {
@@ -89,7 +94,7 @@ class ColaProcesos {
         procesos.sort((p1, p2) -> p2.getPrioridad() - p1.getPrioridad());
     }
 
-    public void remove(Proceso proceso) {
+    public void eliminarProceso(Proceso proceso) {
         procesos.remove(proceso);
     }
 
@@ -108,6 +113,11 @@ class PlanificadorProcesos {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("--- Planificador de Procesos ---");
+        System.out.print("Ingresa el número de procesos: ");
+        int numProcesos = scanner.nextInt();
+
+        ColaProcesos colaProcesos = crearColaProcesos(numProcesos);
+
         System.out.println("Selecciona el algoritmo de planificación:");
         System.out.println("1. FCFS (en orden de llegada)");
         System.out.println("2. SJF (Planificación con selección del trabajo más corto)");
@@ -116,8 +126,6 @@ class PlanificadorProcesos {
         System.out.println("5. SRTF (Shortest Remaining Time First)");
         System.out.print("Opción: ");
         int opcion = scanner.nextInt();
-
-        ColaProcesos colaProcesos = crearColaProcesos();
 
         switch (opcion) {
             case 1:
@@ -144,13 +152,23 @@ class PlanificadorProcesos {
         }
     }
 
-    public static ColaProcesos crearColaProcesos() {
+    public static ColaProcesos crearColaProcesos(int numProcesos) {
         ColaProcesos colaProcesos = new ColaProcesos();
-        colaProcesos.agregarProceso(new Proceso("P1", 5, 2));
-        colaProcesos.agregarProceso(new Proceso("P2", 3, 1));
-        colaProcesos.agregarProceso(new Proceso("P3", 8, 3));
-        colaProcesos.agregarProceso(new Proceso("P4", 2, 4));
-        colaProcesos.agregarProceso(new Proceso("P5", 6, 2));
+        Scanner scanner = new Scanner(System.in);
+
+        for (int i = 1; i <= numProcesos; i++) {
+            System.out.println("Proceso #" + i);
+            System.out.print("Ingresa el nombre: ");
+            String nombre = scanner.nextLine();
+            System.out.print("Ingresa la duración: ");
+            int duracion = scanner.nextInt();
+            System.out.print("Ingresa la prioridad: ");
+            int prioridad = scanner.nextInt();
+            scanner.nextLine(); // Consumir nueva línea
+
+            colaProcesos.agregarProceso(new Proceso(nombre, duracion, prioridad));
+        }
+
         return colaProcesos;
     }
 
@@ -166,7 +184,7 @@ class PlanificadorProcesos {
                 e.printStackTrace();
             }
 
-            colaProcesos.remove(proceso);
+            colaProcesos.eliminarProceso(proceso);
         }
     }
 
@@ -184,10 +202,9 @@ class PlanificadorProcesos {
                 e.printStackTrace();
             }
 
-            colaProcesos.remove(proceso);
+            colaProcesos.eliminarProceso(proceso);
         }
     }
-
     public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
         while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProceso();
@@ -201,7 +218,8 @@ class PlanificadorProcesos {
             }
 
             if (proceso.getDuracion() > 0) {
-                colaProcesos.remove(proceso);
+                proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
+                colaProcesos.eliminarProceso(proceso);
                 colaProcesos.agregarProceso(proceso);
             }
         }
@@ -222,11 +240,13 @@ class PlanificadorProcesos {
             }
 
             if (proceso.getDuracion() > 0) {
-                colaProcesos.remove(proceso);
+                proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
+                colaProcesos.eliminarProceso(proceso);
                 colaProcesos.agregarProceso(proceso);
             }
         }
     }
+
 
     public static void planificarSRTF(ColaProcesos colaProcesos) {
         while (!colaProcesos.estaVacia()) {
@@ -240,7 +260,7 @@ class PlanificadorProcesos {
                 e.printStackTrace();
             }
 
-            colaProcesos.remove(proceso);
+            colaProcesos.eliminarProceso(proceso);
         }
     }
 }
