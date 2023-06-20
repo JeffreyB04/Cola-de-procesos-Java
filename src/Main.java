@@ -1,63 +1,46 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 class Proceso implements Runnable {
     private String nombre;
     private int duracion;
     private int prioridad;
-    private JTable table;
+    private JTextArea outputTextArea;
 
-    public Proceso(String nombre, int duracion, int prioridad, JTable table) {
+    public Proceso(String nombre, int duracion, int prioridad, JTextArea outputTextArea) {
         this.nombre = nombre;
         this.duracion = duracion;
         this.prioridad = prioridad;
-        this.table = table;
+        this.outputTextArea = outputTextArea;
     }
 
     public String getNombre() {
         return nombre;
     }
 
-    public int getDuracion() {
-        return duracion;
-    }
     public void setDuracion(int duracion) {
         this.duracion = duracion;
     }
 
+    public int getDuracion() {
+        return duracion;
+    }
 
     public int getPrioridad() {
         return prioridad;
     }
 
     public void run() {
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        int rowIndex = Integer.parseInt(Thread.currentThread().getName());
+        outputTextArea.append("Ejecutando proceso " + nombre + " (duración = " + duracion
+                + ", prioridad = " + prioridad + ")\n");
 
         while (duracion > 0) {
-            model.setValueAt(duracion, rowIndex, 2);
+            outputTextArea.append("Proceso " + nombre + ": " + duracion + " segundos restantes.\n");
             duracion--;
             try {
                 Thread.sleep(1000);
@@ -66,7 +49,7 @@ class Proceso implements Runnable {
             }
         }
 
-        model.setValueAt("Finalizado", rowIndex, 3);
+        outputTextArea.append("Proceso " + nombre + " finalizado.\n");
     }
 }
 
@@ -117,7 +100,7 @@ class ColaProcesos {
         procesos.sort((p1, p2) -> p2.getPrioridad() - p1.getPrioridad());
     }
 
-    public void remove(Proceso proceso) {
+    public void eliminarProceso(Proceso proceso) {
         procesos.remove(proceso);
     }
 
@@ -131,237 +114,184 @@ class ColaProcesos {
 }
 
 class PlanificadorProcesosGUI extends JFrame {
+    private JLabel numProcesosLabel;
+    private JTextField numProcesosTextField;
+    private JButton crearColaButton;
+    private JLabel algoritmoLabel;
     private JComboBox<String> algoritmoComboBox;
-    private JTextField cantidadProcesosTextField;
-    private JButton iniciarButton;
-    private JTable procesosTable;
-    private DefaultTableModel tableModel;
+    private JLabel quantumLabel;
+    private JTextField quantumTextField;
+    private JButton planificarButton;
+    private JTextArea outputTextArea;
+
     private ColaProcesos colaProcesos;
 
     public PlanificadorProcesosGUI() {
         setTitle("Planificador de Procesos");
+        setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-        initComponents();
-        pack();
         setLocationRelativeTo(null);
-        setVisible(true);
-    }
+        setLayout(new GridLayout(6, 2, 10, 10));
 
-    private void initComponents() {
-        JPanel optionsPanel = new JPanel(new FlowLayout());
-        algoritmoComboBox = new JComboBox<>(new String[] {
-                "FCFS (en orden de llegada)",
-                "SJF (Planificación con selección del trabajo más corto)",
-                "Round Robin con FIFO",
-                "Round Robin con prioridad",
-                "SRTF (Shortest Remaining Time First)"
-        });
-        algoritmoComboBox.setPreferredSize(new Dimension(300, 25));
-        cantidadProcesosTextField = new JTextField(10);
-        iniciarButton = new JButton("Iniciar");
-        optionsPanel.add(new JLabel("Algoritmo:"));
-        optionsPanel.add(algoritmoComboBox);
-        optionsPanel.add(new JLabel("Cantidad de Procesos:"));
-        optionsPanel.add(cantidadProcesosTextField);
-        optionsPanel.add(iniciarButton);
+        numProcesosLabel = new JLabel("Número de procesos:");
+        numProcesosTextField = new JTextField();
+        crearColaButton = new JButton("Crear cola");
+        algoritmoLabel = new JLabel("Algoritmo de planificación:");
+        algoritmoComboBox = new JComboBox<>(new String[]{"FCFS", "SJF", "Round Robin", "Round Robin con prioridad", "SRTF"});
+        quantumLabel = new JLabel("Quantum:");
+        quantumTextField = new JTextField();
+        planificarButton = new JButton("Planificar");
+        outputTextArea = new JTextArea();
 
-        tableModel = new DefaultTableModel(new Object[][]{}, new String[] {
-                "Proceso", "Duración", "Estado"
-        });
-        procesosTable = new JTable(tableModel);
-        procesosTable.setRowHeight(30);
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        procesosTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        procesosTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-        procesosTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-        JScrollPane scrollPane = new JScrollPane(procesosTable);
+        outputTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputTextArea);
 
-        add(optionsPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-
-        iniciarButton.addActionListener(new ActionListener() {
+        crearColaButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                iniciarButton.setEnabled(false);
-                algoritmoComboBox.setEnabled(false);
-                cantidadProcesosTextField.setEnabled(false);
+                String numProcesosText = numProcesosTextField.getText();
+                int numProcesos = Integer.parseInt(numProcesosText);
+                colaProcesos = crearColaProcesos(numProcesos);
+                outputTextArea.append("Cola de procesos creada.\n");
+            }
+        });
 
-                String algoritmo = algoritmoComboBox.getSelectedItem().toString();
-                int cantidadProcesos = Integer.parseInt(cantidadProcesosTextField.getText());
-
-                if (cantidadProcesos <= 0) {
-                    JOptionPane.showMessageDialog(PlanificadorProcesosGUI.this,
-                            "La cantidad de procesos debe ser mayor a cero.", "Error", JOptionPane.ERROR_MESSAGE);
-                    iniciarButton.setEnabled(true);
-                    algoritmoComboBox.setEnabled(true);
-                    cantidadProcesosTextField.setEnabled(true);
+        planificarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (colaProcesos == null) {
+                    outputTextArea.append("Primero debes crear una cola de procesos.\n");
                     return;
                 }
 
-                colaProcesos = crearColaProcesos(cantidadProcesos);
-
-                switch (algoritmo) {
-                    case "FCFS (en orden de llegada)":
-                        planificarFCFS();
-                        break;
-                    case "SJF (Planificación con selección del trabajo más corto)":
-                        planificarSJF();
-                        break;
-                    case "Round Robin con FIFO":
-                        String quantumStr = JOptionPane.showInputDialog(PlanificadorProcesosGUI.this,
-                                "Ingresa el valor del quantum:", "Quantum", JOptionPane.QUESTION_MESSAGE);
-                        int quantum = Integer.parseInt(quantumStr);
-                        planificarRoundRobinFIFO(quantum);
-                        break;
-                    case "Round Robin con prioridad":
-                        String quantumStr2 = JOptionPane.showInputDialog(PlanificadorProcesosGUI.this,
-                                "Ingresa el valor del quantum:", "Quantum", JOptionPane.QUESTION_MESSAGE);
-                        int quantum2 = Integer.parseInt(quantumStr2);
-                        planificarRoundRobinPrioridad(quantum2);
-                        break;
-                    case "SRTF (Shortest Remaining Time First)":
-                        planificarSRTF();
-                        break;
+                String algoritmo = algoritmoComboBox.getSelectedItem().toString();
+                if (algoritmo.equals("FCFS")) {
+                    planificarFCFS(colaProcesos);
+                } else if (algoritmo.equals("SJF")) {
+                    planificarSJF(colaProcesos);
+                } else if (algoritmo.equals("Round Robin")) {
+                    String quantumText = quantumTextField.getText();
+                    int quantum = Integer.parseInt(quantumText);
+                    planificarRoundRobin(colaProcesos, quantum);
+                } else if (algoritmo.equals("Round Robin con prioridad")) {
+                    String quantumText = quantumTextField.getText();
+                    int quantum = Integer.parseInt(quantumText);
+                    planificarRoundRobinConPrioridad(colaProcesos, quantum);
+                } else if (algoritmo.equals("SRTF")) {
+                    planificarSRTF(colaProcesos);
                 }
             }
         });
+
+        add(numProcesosLabel);
+        add(numProcesosTextField);
+        add(crearColaButton);
+        add(new JLabel()); // Placeholder
+        add(algoritmoLabel);
+        add(algoritmoComboBox);
+        add(quantumLabel);
+        add(quantumTextField);
+        add(planificarButton);
+        add(new JLabel()); // Placeholder
+        add(scrollPane);
     }
 
-    private ColaProcesos crearColaProcesos(int cantidadProcesos) {
+    public ColaProcesos crearColaProcesos(int numProcesos) {
         ColaProcesos colaProcesos = new ColaProcesos();
-        for (int i = 1; i <= cantidadProcesos; i++) {
-            String nombre = "P" + i;
-            int duracion = (int) (Math.random() * 10) + 1;
-            int prioridad = (int) (Math.random() * 5) + 1;
-            colaProcesos.agregarProceso(new Proceso(nombre, duracion, prioridad, procesosTable));
+
+        for (int i = 1; i <= numProcesos; i++) {
+            String nombre = JOptionPane.showInputDialog("Nombre del proceso " + i + ":");
+            String duracionText = JOptionPane.showInputDialog("Duración del proceso " + i + ":");
+            int duracion = Integer.parseInt(duracionText);
+            String prioridadText = JOptionPane.showInputDialog("Prioridad del proceso " + i + ":");
+            int prioridad = Integer.parseInt(prioridadText);
+
+            Proceso proceso = new Proceso(nombre, duracion, prioridad, outputTextArea);
+            colaProcesos.agregarProceso(proceso);
         }
+
         return colaProcesos;
     }
 
-    private void planificarFCFS() {
-        while (!colaProcesos.estaVacia()) {
-            Proceso proceso = colaProcesos.obtenerProceso();
-            Thread thread = new Thread(proceso);
-            thread.setName(String.valueOf(colaProcesos.size() - 1));
-            thread.start();
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            colaProcesos.remove(proceso);
+    public void planificarFCFS(ColaProcesos colaProcesos) {
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
+
+        for (int i = 0; i < colaProcesos.size(); i++) {
+            Proceso proceso = colaProcesos.get(i);
+            executorService.execute(proceso);
         }
-        mostrarMensaje("Todos los procesos han finalizado.");
-        reiniciar();
+
+        executorService.shutdown();
     }
 
-    private void planificarSJF() {
+    public void planificarSJF(ColaProcesos colaProcesos) {
         colaProcesos.ordenarPorDuracion();
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
 
-        while (!colaProcesos.estaVacia()) {
-            Proceso proceso = colaProcesos.obtenerProceso();
-            Thread thread = new Thread(proceso);
-            thread.setName(String.valueOf(colaProcesos.size() - 1));
-            thread.start();
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            colaProcesos.remove(proceso);
+        for (int i = 0; i < colaProcesos.size(); i++) {
+            Proceso proceso = colaProcesos.get(i);
+            executorService.execute(proceso);
         }
-        mostrarMensaje("Todos los procesos han finalizado.");
-        reiniciar();
+
+        executorService.shutdown();
     }
-    private void planificarRoundRobinFIFO(int quantum) {
+
+    public void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
+        int i = 0;
+
         while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProceso();
-            Thread thread = new Thread(proceso);
-            thread.setName(String.valueOf(colaProcesos.size() - 1));
-            thread.start();
-
-            try {
-                Thread.sleep(quantum * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (proceso.getDuracion() > 0) {
+            if (proceso.getDuracion() > quantum) {
                 proceso.setDuracion(proceso.getDuracion() - quantum);
-                colaProcesos.remove(proceso);
-                colaProcesos.agregarProceso(proceso);
+                executorService.execute(proceso);
+                i = (i + 1) % colaProcesos.size();
             } else {
-                colaProcesos.remove(proceso);
+                executorService.execute(proceso);
+                colaProcesos.eliminarProceso(proceso);
             }
         }
-        mostrarMensaje("Todos los procesos han finalizado.");
-        reiniciar();
+
+        executorService.shutdown();
     }
 
-    private void planificarRoundRobinPrioridad(int quantum) {
+    public void planificarRoundRobinConPrioridad(ColaProcesos colaProcesos, int quantum) {
         colaProcesos.ordenarPorPrioridad();
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
+        int i = 0;
 
         while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProceso();
-            Thread thread = new Thread(proceso);
-            thread.setName(String.valueOf(colaProcesos.size() - 1));
-            thread.start();
-
-            try {
-                Thread.sleep(quantum * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (proceso.getDuracion() > 0) {
+            if (proceso.getDuracion() > quantum) {
                 proceso.setDuracion(proceso.getDuracion() - quantum);
-                colaProcesos.remove(proceso);
-                colaProcesos.agregarProceso(proceso);
+                executorService.execute(proceso);
+                i = (i + 1) % colaProcesos.size();
             } else {
-                colaProcesos.remove(proceso);
+                executorService.execute(proceso);
+                colaProcesos.eliminarProceso(proceso);
             }
         }
-        mostrarMensaje("Todos los procesos han finalizado.");
-        reiniciar();
+
+        executorService.shutdown();
     }
 
+    public void planificarSRTF(ColaProcesos colaProcesos) {
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
 
-    private void planificarSRTF() {
         while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProcesoConMenorDuracion();
-            Thread thread = new Thread(proceso);
-            thread.setName(String.valueOf(colaProcesos.size() - 1));
-            thread.start();
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            colaProcesos.remove(proceso);
+            executorService.execute(proceso);
+            colaProcesos.eliminarProceso(proceso);
         }
-        mostrarMensaje("Todos los procesos han finalizado.");
-        reiniciar();
+
+        executorService.shutdown();
     }
 
-    private void mostrarMensaje(String mensaje) {
-        JOptionPane.showMessageDialog(PlanificadorProcesosGUI.this, mensaje, "Información", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void reiniciar() {
-        iniciarButton.setEnabled(true);
-        algoritmoComboBox.setEnabled(true);
-        cantidadProcesosTextField.setEnabled(true);
-        tableModel.setRowCount(0);
-        colaProcesos = null;
-    }
-}
-
-public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new PlanificadorProcesosGUI();
+                PlanificadorProcesosGUI gui = new PlanificadorProcesosGUI();
+                gui.setVisible(true);
             }
         });
     }
