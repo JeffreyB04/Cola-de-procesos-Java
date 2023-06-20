@@ -227,10 +227,10 @@ class PlanificadorProcesos {
             }
 
             if (proceso.getDuracion() > 0) {
-                proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
-                colaProcesos.eliminarProceso(proceso);
+               proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
                 colaProcesos.agregarProceso(proceso);
             }
+            colaProcesos.eliminarProceso(proceso);
         }
     }
 
@@ -250,9 +250,9 @@ class PlanificadorProcesos {
 
             if (proceso.getDuracion() > 0) {
                 proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
-                colaProcesos.eliminarProceso(proceso);
                 colaProcesos.agregarProceso(proceso);
             }
+            colaProcesos.eliminarProceso(proceso);
         }
     }
 
