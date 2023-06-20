@@ -105,6 +105,7 @@ class Proceso implements Runnable {
     public Proceso get(int index) {
         return procesos.get(index);
     }
+
 }
 
 class PlanificadorProcesos {
@@ -133,6 +134,7 @@ class PlanificadorProcesos {
             switch (opcion) {
                 case 1:
                     planificarFCFS(colaProcesos);
+                    tiempoEjecucionFCFS(colaProcesos);
                     break;
                 case 2:
                     planificarSJF(colaProcesos);
@@ -195,6 +197,21 @@ class PlanificadorProcesos {
 
             colaProcesos.eliminarProceso(proceso);
         }
+    }
+
+    public static void tiempoEjecucionFCFS(ColaProcesos procesos) {
+        int sum = 0;
+        System.out.print("Tiempo total de ejecución: ");
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i == 0) {
+                System.out.print(proceso.getDuracion());
+            } else {
+                System.out.print("+" + proceso.getDuracion());
+            }
+            sum += proceso.getDuracion();
+        }
+        System.out.print(" = " + sum+ "\n");
     }
 
     public static void planificarSJF(ColaProcesos colaProcesos) {
