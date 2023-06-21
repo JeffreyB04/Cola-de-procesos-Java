@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 class Proceso implements Runnable {
     private String nombre;
@@ -157,7 +161,9 @@ class PlanificadorProcesos {
                 case 3:
                     System.out.print("Ingresa el valor del quantum: ");
                     int quantum = scanner.nextInt();
+                    System.out.println("|------|------|------|------|");
                     planificarRoundRobin(colaProcesos, quantum);
+                    System.out.println("|------|------|------|------|");
                     break;
                 case 4:
                     System.out.print("Ingresa el valor del quantum: ");
@@ -325,7 +331,7 @@ class PlanificadorProcesos {
         System.out.println();
     }
 
-    public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
+    /*public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
         while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProceso();
             Thread thread = new Thread(proceso);
@@ -343,7 +349,28 @@ class PlanificadorProcesos {
             }
             colaProcesos.eliminarProceso(proceso);
         }
+    }*/
+    //TODO: Tira el orden de los procesos bien pero
+    // hay errores porque imprime el menu en medio proceso.
+    public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
+        ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
+        int i = 0;
+
+        while(!colaProcesos.estaVacia()) {
+            Proceso proceso = colaProcesos.obtenerProceso();
+            if (proceso.getDuracion() > quantum) {
+                proceso.setDuracion(proceso.getDuracion() - quantum);
+                executorService.execute(proceso);
+                i = (i + 1) % colaProcesos.size();
+            } else {
+                executorService.execute(proceso);
+                colaProcesos.eliminarProceso(proceso);
+            }
+        }
+
+        executorService.shutdown();
     }
+
 
     public static void planificarRoundRobinConPrioridad(ColaProcesos colaProcesos, int quantum) {
         colaProcesos.ordenarPorPrioridad();
@@ -366,6 +393,7 @@ class PlanificadorProcesos {
             colaProcesos.eliminarProceso(proceso);
         }
     }
+
 
     public static void planificarSRTF(ColaProcesos colaProcesos) {
         while (!colaProcesos.estaVacia()) {
