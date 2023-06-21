@@ -30,11 +30,11 @@ class Proceso implements Runnable {
     }
 
     public void run() {
-        System.out.println("Ejecutando proceso " + nombre + " (duración = " + duracion
+        System.out.println(" Ejecutando proceso " + nombre + " (duración = " + duracion
                 + ", prioridad = " + prioridad + ")");
 
         while (duracion > 0) {
-            System.out.println("Proceso " + nombre + ": " + duracion + " segundos restantes.");
+            System.out.println("\t Proceso " + nombre + ": " + duracion + " segundos restantes.");
             duracion--;
             try {
                 Thread.sleep(1000);
@@ -43,7 +43,7 @@ class Proceso implements Runnable {
             }
         }
 
-        System.out.println("Proceso " + nombre + " finalizado.");
+        System.out.println("\t Proceso " + nombre + " finalizado.");
     }
 }
 
@@ -133,9 +133,14 @@ class PlanificadorProcesos {
 
             switch (opcion) {
                 case 1:
+
+                    System.out.println("|------|------|------|------|");
                     tiemposFCFS(colaProcesos);
                     tiempoEjecucionFCFS(colaProcesos);
+                    System.out.println("|------|------|------|------|");
+                    System.out.println("Simulacion de los procesos: ");
                     planificarFCFS(colaProcesos);
+                    System.out.println("|------|------|------|------|");
                     break;
                 case 2:
                     planificarSJF(colaProcesos);
@@ -218,21 +223,30 @@ class PlanificadorProcesos {
         int tiempoInicio = 0;
         int tiempoFinalizacion = 0;
         int tiempoEspera = 0;
-
+        int[] gantt = new int[procesos.size() + 1]; // Aumentamos en 1 el tamaño del vector
+        gantt[0] = 0;
         for (int i = 0; i < procesos.size(); i++) {
             Proceso proceso = procesos.get(i);
-            if(i!=0){
+            if (i != 0) {
                 tiempoInicio = tiempoFinalizacion;
             }
             tiempoFinalizacion += proceso.getDuracion();
+            gantt[i + 1] = tiempoFinalizacion;
 
             System.out.println("Proceso " + proceso.getNombre() + ":");
-            System.out.println("Tiempo de inicio: " + tiempoInicio);
-            System.out.println("Tiempo de finalización: " + tiempoFinalizacion);
-            System.out.println("Tiempo de espera: " + tiempoEspera);
+            System.out.println("\t Tiempo de inicio: " + tiempoInicio);
+            System.out.println("\t Tiempo de finalización: " + tiempoFinalizacion);
+            System.out.println("\t Tiempo de espera: " + tiempoEspera);
 
-            tiempoEspera = tiempoFinalizacion-tiempoInicio;
+            tiempoEspera = tiempoFinalizacion - tiempoInicio;
+
         }
+        gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.print("Diagrama de Gantt: | ");
+        for (int i = 0; i <= procesos.size(); i++) {
+            System.out.print(gantt[i]+ " | ");
+        }
+        System.out.println();
     }
     public static void planificarSJF(ColaProcesos colaProcesos) {
         colaProcesos.ordenarPorDuracion();
