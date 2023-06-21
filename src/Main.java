@@ -115,11 +115,6 @@ class PlanificadorProcesos {
         boolean continuar = true;
 
         while (continuar) {
-            System.out.println("--- Planificador de Procesos ---");
-            System.out.print("Ingresa el número de procesos: ");
-            int numProcesos = scanner.nextInt();
-
-            ColaProcesos colaProcesos = crearColaProcesos(numProcesos);
 
             System.out.println("Selecciona el algoritmo de planificación:");
             System.out.println("1. FCFS (en orden de llegada)");
@@ -131,13 +126,21 @@ class PlanificadorProcesos {
             System.out.print("Opción: ");
             int opcion = scanner.nextInt();
 
+            ColaProcesos colaProcesos= null;
+            if(opcion!=6){
+                System.out.println("--- Planificador de Procesos ---");
+                System.out.print("Ingresa el número de procesos: ");
+                int numProcesos = scanner.nextInt();
+                colaProcesos = crearColaProcesos(numProcesos);
+            }
+
             switch (opcion) {
                 case 1:
 
                     System.out.println("|------|------|------|------|");
                     tiemposFCFS(colaProcesos);
                     tiempoEjecucionFCFS(colaProcesos);
-                    System.out.println("|------|------|------|------|");
+                    System.out.println();
                     System.out.println("Simulacion de los procesos: ");
                     planificarFCFS(colaProcesos);
                     System.out.println("|------|------|------|------|");
@@ -146,7 +149,7 @@ class PlanificadorProcesos {
                     System.out.println("|------|------|------|------|");
                     tiemposSJF(colaProcesos);
                     tiempoEjecucionSJF(colaProcesos);
-                    System.out.println("|------|------|------|------|");
+                    System.out.println();
                     System.out.println("Simulacion de los procesos: ");
                     planificarSJF(colaProcesos);
                     System.out.println("|------|------|------|------|");
@@ -248,6 +251,7 @@ class PlanificadorProcesos {
         }
 
         gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.println();
         System.out.print("Diagrama de Gantt: | ");
         for (int i = 0; i <= procesos.size(); i++) {
             System.out.print(gantt[i]+ " | ");
@@ -313,6 +317,7 @@ class PlanificadorProcesos {
         }
 
         gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.println();
         System.out.print("Diagrama de Gantt: | ");
         for (int i = 0; i <= procesos.size(); i++) {
             System.out.print(gantt[i]+ " | ");
