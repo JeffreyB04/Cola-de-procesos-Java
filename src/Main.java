@@ -51,7 +51,7 @@ class Proceso implements Runnable {
     }
 }
 
-    class ColaProcesos {
+class ColaProcesos {
     private List<Proceso> procesos;
 
     public ColaProcesos() {
@@ -162,16 +162,32 @@ class PlanificadorProcesos {
                     System.out.print("Ingresa el valor del quantum: ");
                     int quantum = scanner.nextInt();
                     System.out.println("|------|------|------|------|");
+                    tiemposRoundRobinConFIFO(colaProcesos);
+                    tiempoEjecucionRoundRobinConFIFO(colaProcesos);
+                    System.out.println();
+                    System.out.println("Simulacion de los procesos: ");
                     planificarRoundRobin(colaProcesos, quantum);
                     System.out.println("|------|------|------|------|");
                     break;
                 case 4:
                     System.out.print("Ingresa el valor del quantum: ");
                     quantum = scanner.nextInt();
+                    System.out.println("|------|------|------|------|");
+                    tiemposRoundRobinConPrioridad(colaProcesos);
+                    tiempoEjecucionRoundRobinConPrioridad(colaProcesos);
+                    System.out.println();
+                    System.out.println("Simulacion de los procesos: ");
                     planificarRoundRobinConPrioridad(colaProcesos, quantum);
+                    System.out.println("|------|------|------|------|");
                     break;
                 case 5:
+                    System.out.println("|------|------|------|------|");
+                    tiemposSRTF(colaProcesos);
+                    tiempoEjecucionSRTF(colaProcesos);
+                    System.out.println();
+                    System.out.println("Simulacion de los procesos: ");
                     planificarSRTF(colaProcesos);
+                    System.out.println("|------|------|------|------|");
                     break;
                 case 6:
                     continuar = false;
@@ -352,11 +368,61 @@ class PlanificadorProcesos {
     }*/
     //TODO: Tira el orden de los procesos bien pero
     // hay errores porque imprime el menu en medio proceso.
+
+    public static void tiempoEjecucionRoundRobinConFIFO(ColaProcesos procesos) {
+        int sum = 0;
+        System.out.print("Tiempo total de ejecución: ");
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i == 0) {
+                System.out.print(proceso.getDuracion());
+            } else {
+                System.out.print("+" + proceso.getDuracion());
+            }
+            sum += proceso.getDuracion();
+        }
+        System.out.print(" = " + sum + "\n");
+    }
+
+    public static void tiemposRoundRobinConFIFO(ColaProcesos procesos) {
+        int tiempoInicio = 0;
+        int tiempoFinalizacion = 0;
+        int tiempoEspera = 0;
+        int[] gantt = new int[procesos.size() + 1]; // Aumentamos en 1 el tamaño del vector
+        gantt[0] = 0;
+
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i != 0) {
+                tiempoInicio = tiempoFinalizacion;
+            }
+            tiempoFinalizacion += proceso.getDuracion();
+            gantt[i + 1] = tiempoFinalizacion;
+
+            System.out.println("Proceso " + proceso.getNombre() + ":");
+            System.out.println("\t Tiempo de inicio: " + tiempoInicio);
+            System.out.println("\t Tiempo de finalización: " + tiempoFinalizacion);
+            System.out.println("\t Tiempo de espera: " + tiempoEspera);
+
+            tiempoEspera = tiempoFinalizacion - tiempoInicio;
+
+        }
+
+        gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.println();
+        System.out.print("Diagrama de Gantt: | ");
+        for (int i = 0; i <= procesos.size(); i++) {
+            System.out.print(gantt[i] + " | ");
+        }
+        System.out.println();
+    }
+
+
     public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
         ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
         int i = 0;
 
-        while(!colaProcesos.estaVacia()) {
+        while (!colaProcesos.estaVacia()) {
             Proceso proceso = colaProcesos.obtenerProceso();
             if (proceso.getDuracion() > quantum) {
                 proceso.setDuracion(proceso.getDuracion() - quantum);
@@ -368,9 +434,63 @@ class PlanificadorProcesos {
             }
         }
 
-        executorService.shutdown();
+        executorService.shutdown(); // Detiene la aceptación de nuevos procesos
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, java.util.concurrent.TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
+
+
+    public static void tiempoEjecucionRoundRobinConPrioridad(ColaProcesos procesos) {
+        int sum = 0;
+        System.out.print("Tiempo total de ejecución: ");
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i == 0) {
+                System.out.print(proceso.getDuracion());
+            } else {
+                System.out.print("+" + proceso.getDuracion());
+            }
+            sum += proceso.getDuracion();
+        }
+        System.out.print(" = " + sum + "\n");
+    }
+
+    public static void tiemposRoundRobinConPrioridad(ColaProcesos procesos) {
+        int tiempoInicio = 0;
+        int tiempoFinalizacion = 0;
+        int tiempoEspera = 0;
+        int[] gantt = new int[procesos.size() + 1]; // Aumentamos en 1 el tamaño del vector
+        gantt[0] = 0;
+
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i != 0) {
+                tiempoInicio = tiempoFinalizacion;
+            }
+            tiempoFinalizacion += proceso.getDuracion();
+            gantt[i + 1] = tiempoFinalizacion;
+
+            System.out.println("Proceso " + proceso.getNombre() + ":");
+            System.out.println("\t Tiempo de inicio: " + tiempoInicio);
+            System.out.println("\t Tiempo de finalización: " + tiempoFinalizacion);
+            System.out.println("\t Tiempo de espera: " + tiempoEspera);
+
+            tiempoEspera = tiempoFinalizacion - tiempoInicio;
+
+        }
+
+        gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.println();
+        System.out.print("Diagrama de Gantt: | ");
+        for (int i = 0; i <= procesos.size(); i++) {
+            System.out.print(gantt[i] + " | ");
+        }
+        System.out.println();
+    }
 
     public static void planificarRoundRobinConPrioridad(ColaProcesos colaProcesos, int quantum) {
         colaProcesos.ordenarPorPrioridad();
@@ -394,6 +514,54 @@ class PlanificadorProcesos {
         }
     }
 
+
+    public static void tiempoEjecucionSRTF(ColaProcesos procesos) {
+        int sum = 0;
+        System.out.print("Tiempo total de ejecución: ");
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i == 0) {
+                System.out.print(proceso.getDuracion());
+            } else {
+                System.out.print("+" + proceso.getDuracion());
+            }
+            sum += proceso.getDuracion();
+        }
+        System.out.print(" = " + sum + "\n");
+    }
+
+    public static void tiemposSRTF(ColaProcesos procesos) {
+        int tiempoInicio = 0;
+        int tiempoFinalizacion = 0;
+        int tiempoEspera = 0;
+        int[] gantt = new int[procesos.size() + 1]; // Aumentamos en 1 el tamaño del vector
+        gantt[0] = 0;
+
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if (i != 0) {
+                tiempoInicio = tiempoFinalizacion;
+            }
+            tiempoFinalizacion += proceso.getDuracion();
+            gantt[i + 1] = tiempoFinalizacion;
+
+            System.out.println("Proceso " + proceso.getNombre() + ":");
+            System.out.println("\t Tiempo de inicio: " + tiempoInicio);
+            System.out.println("\t Tiempo de finalización: " + tiempoFinalizacion);
+            System.out.println("\t Tiempo de espera: " + tiempoEspera);
+
+            tiempoEspera = tiempoFinalizacion - tiempoInicio;
+
+        }
+
+        gantt[procesos.size()] = tiempoFinalizacion;
+        System.out.println();
+        System.out.print("Diagrama de Gantt: | ");
+        for (int i = 0; i <= procesos.size(); i++) {
+            System.out.print(gantt[i] + " | ");
+        }
+        System.out.println();
+    }
 
     public static void planificarSRTF(ColaProcesos colaProcesos) {
         while (!colaProcesos.estaVacia()) {
