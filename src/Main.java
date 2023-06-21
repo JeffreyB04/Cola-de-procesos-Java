@@ -133,8 +133,9 @@ class PlanificadorProcesos {
 
             switch (opcion) {
                 case 1:
-                    planificarFCFS(colaProcesos);
+                    tiemposFCFS(colaProcesos);
                     tiempoEjecucionFCFS(colaProcesos);
+                    planificarFCFS(colaProcesos);
                     break;
                 case 2:
                     planificarSJF(colaProcesos);
@@ -213,7 +214,26 @@ class PlanificadorProcesos {
         }
         System.out.print(" = " + sum+ "\n");
     }
+    public static void tiemposFCFS(ColaProcesos procesos) {
+        int tiempoInicio = 0;
+        int tiempoFinalizacion = 0;
+        int tiempoEspera = 0;
 
+        for (int i = 0; i < procesos.size(); i++) {
+            Proceso proceso = procesos.get(i);
+            if(i!=0){
+                tiempoInicio = tiempoFinalizacion;
+            }
+            tiempoFinalizacion += proceso.getDuracion();
+
+            System.out.println("Proceso " + proceso.getNombre() + ":");
+            System.out.println("Tiempo de inicio: " + tiempoInicio);
+            System.out.println("Tiempo de finalización: " + tiempoFinalizacion);
+            System.out.println("Tiempo de espera: " + tiempoEspera);
+
+            tiempoEspera = tiempoFinalizacion-tiempoInicio;
+        }
+    }
     public static void planificarSJF(ColaProcesos colaProcesos) {
         colaProcesos.ordenarPorDuracion();
 
