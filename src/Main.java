@@ -205,7 +205,10 @@ class PlanificadorProcesosGUI extends JFrame {
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(5, 1, 10, 10));
+        setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
 
         numProcesosLabel = new JLabel("Número de procesos:");
         numProcesosTextField = new JTextField();
@@ -219,6 +222,7 @@ class PlanificadorProcesosGUI extends JFrame {
 
         outputTextArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(outputTextArea);
+
 
         crearColaButton.addActionListener(new ActionListener() {
             @Override
@@ -267,36 +271,40 @@ class PlanificadorProcesosGUI extends JFrame {
         panel1.add(numProcesosLabel);
         panel1.add(numProcesosTextField);
         panel1.add(crearColaButton);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        add(panel1, gbc);
 
         JPanel panel2 = new JPanel();
         panel2.setLayout(new GridLayout(1, 3, 12, 12));
         panel2.add(algoritmoLabel);
         panel2.add(algoritmoComboBox);
-        panel2.add(new JPanel());
+        gbc.gridy = 1;
+        add(panel2, gbc);
 
         JPanel panel3 = new JPanel();
         panel3.setLayout(new GridLayout(1, 3, 12, 12));
         panel3.add(quantumLabel);
         panel3.add(quantumTextField);
-        panel3.add(new JPanel());
-
-        //JPanel panel4 = new JPanel(); // Vacío para espaciado
+        gbc.gridy = 2;
+        add(panel3, gbc);
 
         JPanel panel5 = new JPanel();
         panel5.setLayout(new FlowLayout());
         panel5.add(planificarButton);
+        gbc.gridy = 3;
+        add(panel5, gbc);
 
         JPanel panel6 = new JPanel();
         panel6.setLayout(new BorderLayout());
-        panel6.setPreferredSize(new Dimension(400, 250));
+        panel6.setPreferredSize(new Dimension(200, 200));
         panel6.add(scrollPane, BorderLayout.CENTER);
-
-        add(panel1);
-        add(panel2);
-        add(panel3);
-       // add(panel4);
-        add(panel5);
-        add(panel6);
+        gbc.gridy = 4;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        add(panel6, gbc);
     }
     public ColaProcesos crearColaProcesos(int numProcesos) {
         ColaProcesos colaProcesos = new ColaProcesos();
