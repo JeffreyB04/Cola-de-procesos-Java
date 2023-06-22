@@ -126,7 +126,7 @@ class PlanificadorProcesosGUI extends JFrame {
 
     private ColaProcesos colaProcesos;
 
-    public PlanificadorProcesosGUI() {
+    /*public PlanificadorProcesosGUI() {
         setTitle("Planificador de Procesos");
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -199,8 +199,105 @@ class PlanificadorProcesosGUI extends JFrame {
         add(planificarButton);
         add(new JLabel()); // Placeholder
         add(scrollPane);
-    }
+    }*/
+    public PlanificadorProcesosGUI() {
+        setTitle("Planificador de Procesos");
+        setSize(400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new GridLayout(5, 1, 10, 10));
 
+        numProcesosLabel = new JLabel("Número de procesos:");
+        numProcesosTextField = new JTextField();
+        crearColaButton = new JButton("Crear cola");
+        algoritmoLabel = new JLabel("Algoritmo de planificación:");
+        algoritmoComboBox = new JComboBox<>(new String[]{"FCFS", "SJF", "Round Robin", "Round Robin con prioridad", "SRTF"});
+        quantumLabel = new JLabel("Quantum:");
+        quantumTextField = new JTextField();
+        planificarButton = new JButton("Planificar");
+        outputTextArea = new JTextArea();
+
+        outputTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputTextArea);
+
+        crearColaButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String numProcesosText = numProcesosTextField.getText();
+                int numProcesos = Integer.parseInt(numProcesosText);
+                colaProcesos = crearColaProcesos(numProcesos);
+                outputTextArea.append("Cola de procesos creada.\n");
+            }
+        });
+
+        planificarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (colaProcesos == null) {
+                    outputTextArea.append("Primero debes crear una cola de procesos.\n");
+                    return;
+                }
+
+                String algoritmo = algoritmoComboBox.getSelectedItem().toString();
+                if (algoritmo.equals("FCFS")) {
+                    planificarFCFS(colaProcesos);
+
+                } else if (algoritmo.equals("SJF")) {
+                    planificarSJF(colaProcesos);
+
+                } else if (algoritmo.equals("Round Robin")) {
+                    String quantumText = quantumTextField.getText();
+                    int quantum = Integer.parseInt(quantumText);
+                    planificarRoundRobin(colaProcesos, quantum);
+
+                } else if (algoritmo.equals("Round Robin con prioridad")) {
+                    String quantumText = quantumTextField.getText();
+                    int quantum = Integer.parseInt(quantumText);
+                    planificarRoundRobinConPrioridad(colaProcesos, quantum);
+
+                } else if (algoritmo.equals("SRTF")) {
+                    planificarSRTF(colaProcesos);
+
+                }
+            }
+        });
+
+        JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridLayout(1, 3, 12, 12));
+        panel1.add(numProcesosLabel);
+        panel1.add(numProcesosTextField);
+        panel1.add(crearColaButton);
+
+        JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayout(1, 3, 12, 12));
+        panel2.add(algoritmoLabel);
+        panel2.add(algoritmoComboBox);
+        panel2.add(new JPanel());
+
+        JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridLayout(1, 3, 12, 12));
+        panel3.add(quantumLabel);
+        panel3.add(quantumTextField);
+        panel3.add(new JPanel());
+
+        //JPanel panel4 = new JPanel(); // Vacío para espaciado
+
+        JPanel panel5 = new JPanel();
+        panel5.setLayout(new FlowLayout());
+        panel5.add(planificarButton);
+
+        JPanel panel6 = new JPanel();
+        panel6.setLayout(new BorderLayout());
+        panel6.setPreferredSize(new Dimension(400, 250));
+        panel6.add(scrollPane, BorderLayout.CENTER);
+
+        add(panel1);
+        add(panel2);
+        add(panel3);
+       // add(panel4);
+        add(panel5);
+        add(panel6);
+    }
     public ColaProcesos crearColaProcesos(int numProcesos) {
         ColaProcesos colaProcesos = new ColaProcesos();
 
@@ -282,8 +379,6 @@ class PlanificadorProcesosGUI extends JFrame {
         outputTextArea.append("\t\n");
     }
 
-
-
     public void planificarSJF(ColaProcesos colaProcesos) {
         colaProcesos.ordenarPorDuracion();
         tiempoEjecucionSJF(colaProcesos);
@@ -351,7 +446,6 @@ class PlanificadorProcesosGUI extends JFrame {
         outputTextArea.append("\n");
     }
 
-
     public void tiempoEjecucionRoundRobinConFIFO(ColaProcesos procesos) {
         int sum = 0;
         outputTextArea.append("Tiempo total de ejecución: ");
@@ -400,8 +494,6 @@ class PlanificadorProcesosGUI extends JFrame {
         outputTextArea.append("\n");
     }
 
-
-
     public void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
         ExecutorService executorService = Executors.newFixedThreadPool(colaProcesos.size());
         int i = 0;
@@ -426,9 +518,6 @@ class PlanificadorProcesosGUI extends JFrame {
             e.printStackTrace();
         }
     }
-
-
-
     public void tiempoEjecucionRoundRobinConPrioridad(ColaProcesos procesos) {
         int sum = 0;
         outputTextArea.append("Tiempo total de ejecución: ");
