@@ -347,28 +347,6 @@ class PlanificadorProcesos {
         System.out.println();
     }
 
-    /*public static void planificarRoundRobin(ColaProcesos colaProcesos, int quantum) {
-        while (!colaProcesos.estaVacia()) {
-            Proceso proceso = colaProcesos.obtenerProceso();
-            Thread thread = new Thread(proceso);
-            thread.start();
-
-            try {
-                thread.join(quantum * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (proceso.getDuracion() > 0) {
-               proceso.setDuracion(proceso.getDuracion() - quantum); // Restar el quantum utilizado
-                colaProcesos.agregarProceso(proceso);
-            }
-            colaProcesos.eliminarProceso(proceso);
-        }
-    }*/
-    //TODO: Tira el orden de los procesos bien pero
-    // hay errores porque imprime el menu en medio proceso.
-
     public static void tiempoEjecucionRoundRobinConFIFO(ColaProcesos procesos) {
         int sum = 0;
         System.out.print("Tiempo total de ejecución: ");
